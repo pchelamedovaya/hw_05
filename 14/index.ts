@@ -43,19 +43,24 @@ Bonus:
  * @param {Array} input
  * @return {Array | Function}
  */
-export function map(mapper, input) {
+
+type Mapper<A, B> = (value: A, index: number, array: A[]) => B
+
+export function map<A, B>(mapper: Mapper<A, B>, input: A[]): B[]
+export function map<A, B>(mapper: Mapper<A, B>): (input: A[]) => B[]
+export function map<A, B>(mapper?: Mapper<A, B>, input?: A[]): B[] | ((input: A[]) => B[]) | typeof map {
     if (arguments.length === 0) {
-        return map;
+        return map as typeof map;
     }
     if (arguments.length === 1) {
-        return function subFunction(subInput) {
+        return function subFunction(subInput: A[]) {
             if (arguments.length === 0) {
                 return subFunction;
             }
-            return subInput.map(mapper);
-        };
+            return subInput.map(mapper!);
+        } as (input: A[]) => B[];
     }
-    return input.map(mapper);
+    return input!.map(mapper!);
 }
 
 /**
@@ -74,19 +79,24 @@ export function map(mapper, input) {
  * @param {Array} input
  * @return {Array | Function}
  */
-export function filter(filterer, input) {
+
+type Filterer<T> = (value: T, index: number, array: T[]) => boolean
+
+export function filter<T>(filterer: Filterer<T>, input: T[]): T[];
+export function filter<T>(filterer: Filterer<T>): (input: T[]) => T[];
+export function filter<T>(filterer?: Filterer<T>, input?: T[]): T[] | ((input: T[]) => T[]) | typeof filter {
     if (arguments.length === 0) {
         return filter;
     }
     if (arguments.length === 1) {
-        return function subFunction(subInput) {
+        return function subFunction(subInput: T[]) {
             if (arguments.length === 0) {
                 return subFunction;
             }
-            return subInput.filter(filterer);
-        };
+            return subInput.filter(filterer!);
+        } as (input: T[]) => T[];
     }
-    return input.filter(filterer);
+    return input!.filter(filterer!);
 }
 
 /**
@@ -117,35 +127,42 @@ export function filter(filterer, input) {
  * @param {Array} input
  * @return {* | Function}
  */
-export function reduce(reducer, initialValue, input) {
+
+type Reducer<A, B> = (accumulator: B, currentValue: A, currentIndex: number, array: A[]) => B;
+
+export function reduce<A, B>(
+    reducer: Reducer<A, B>,
+    initialValue: B,
+    input: A[]
+): B;
+export function reduce<A, B>(reducer: Reducer<A, B>, initialValue: B): (input: A[]) => B;
+export function reduce<A, B>(reducer: Reducer<A, B>): (initialValue: B) => (input: A[]) => B;
+export function reduce<A, B>(): typeof reduce;
+export function reduce<A, B>(
+    reducer?: Reducer<A, B>,
+    initialValue?: B,
+    input?: A[]
+): B | ((input: A[]) => B) | ((initialValue: B) => (input: A[]) => B) | typeof reduce {
     if (arguments.length === 0) {
-        return reduce;
+        return reduce as typeof reduce;
     }
     if (arguments.length === 1) {
-        return function subFunction(subInitialValue, subInput) {
+        return function subFunction(subInput: A[]): B {
             if (arguments.length === 0) {
-                return subFunction;
+                return subFunction as any;
             }
-            if (arguments.length === 1) {
-                return function subSubFunction(subSubInput) {
-                    if (arguments.length === 0) {
-                        return subSubFunction;
-                    }
-                    return subSubInput.reduce(reducer, subInitialValue);
-                };
-            }
-            return subInput.reduce(reducer,subInitialValue);
+            return subInput.reduce(reducer!, initialValue!) as B;
         }
     }
     if (arguments.length === 2) {
-        return function subFunction(subInput) {
+        return function subFunction(subInput: A[]): B {
             if (arguments.length === 0) {
-                return subFunction;
+                return subFunction as any;
             }
-            return subInput.reduce(reducer, initialValue);
+            return subInput.reduce(reducer!, initialValue!) as B;
         };
     }
-    return input.reduce(reducer, initialValue);
+    return input!.reduce(reducer!, initialValue!) as B;
 }
 
 /**
@@ -160,19 +177,22 @@ export function reduce(reducer, initialValue, input) {
  * @param {Number} b
  * @return {Number | Function}
  */
-export function add(a, b) {
+export function add(a: number, b: number): number;
+export function add(a: number): (b: number) => number;
+export function add(): typeof add;
+export function add(a?: number, b?: number) {
     if (arguments.length === 0) {
-        return add;
+        return add as typeof add;
     }
     if (arguments.length === 1) {
-        return function subFunction(subB) {
+        return function subFunction(subB: number) {
             if (arguments.length === 0) {
                 return subFunction;
             }
-            return a + subB;
+            return a! + subB;
         };
     }
-    return a + b;
+    return a! + b!;
 }
 
 /**
@@ -188,19 +208,22 @@ export function add(a, b) {
  * @param {Number} b
  * @return {Number | Function}
  */
-export function subtract(a, b) {
+export function subtract(a: number, b: number): number;
+export function subtract(a: number): (b: number) => number;
+export function subtract(): typeof subtract;
+export function subtract(a?: number, b?: number) {
     if (arguments.length === 0) {
-        return subtract;
+        return subtract as typeof subtract;
     }
     if (arguments.length === 1) {
-        return function subFunction(subB) {
+        return function subFunction(subB: number) {
             if (arguments.length === 0) {
                 return subFunction;
             }
-            return a - subB;
+            return a! - subB;
         };
     }
-    return a - b;
+    return a! - b!;
 }
 
 /**
@@ -217,19 +240,22 @@ export function subtract(a, b) {
  * @param {String} propName
  * @return {* | Function}
  */
-export function prop(obj, propName) {
+export function prop<A extends object, B extends keyof A>(obj: A, propName: B): A[B];
+export function prop<A extends object, B extends keyof A>(obj: A): (propName: B) => A[B];
+export function prop<A extends object, B extends keyof A>(): typeof prop;
+export function prop<A extends object, B extends keyof A>(obj?: A, propName?: B) {
     if (arguments.length === 0) {
-        return prop;
+        return prop as typeof prop;
     }
     if (arguments.length === 1) {
-        return function subFunction(subPropName) {
+        return function subFunction(subPropName: B) {
             if (arguments.length === 0) {
                 return subFunction;
             }
-            return obj[subPropName];
+            return obj![subPropName];
         };
     }
-    return obj[propName];
+    return obj![propName!];
 }
 
 /**

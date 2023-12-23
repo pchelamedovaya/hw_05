@@ -27,25 +27,27 @@ Exercise:
 
 */
 
-export class ObjectManipulator {
+type ObjectType<A, B extends string, C> = A & {[Prop in B]: C};
 
-    constructor(protected obj) {}
+export class ObjectManipulator<A> {
 
-    public set(key, value) {
-        return new ObjectManipulator({...this.obj, [key]: value});
+    constructor(protected obj: A) {}
+
+    public set<B extends string, C>(key: B, value: C): ObjectManipulator<ObjectType<A, B, C>> {
+        return new ObjectManipulator({...this.obj, [key]: value} as ObjectType<A, B, C>);
     }
 
-    public get(key) {
+    public get<B extends keyof A>(key: B): A[B] {
         return this.obj[key];
     }
 
-    public delete(key) {
+    public delete<B extends keyof A>(key: B): ObjectManipulator<Omit<A, B>> {
         const newObj = {...this.obj};
         delete newObj[key];
         return new ObjectManipulator(newObj);
     }
 
-    public getObject() {
+    public getObject(): A {
         return this.obj;
     }
 }

@@ -72,8 +72,24 @@ export type ApiResponse<T> = (
     }
 );
 
-export function promisify(arg: unknown): unknown {
-    return null;
+export function promisify<T>(callbackFunction: (callback: (response: ApiResponse<T>) => void) => void): () => Promise<T> {
+    return () => new Promise<T>((resolve, reject) => {
+        callbackFunction(response => {
+            if (response.status === 'success') {
+                resolve(response.data)
+            } else {
+                reject(new Error(response.error))
+            }
+        })
+    })
+}
+
+export  function promisifyAll<T>(object: {[K in keyof T]: (callback: (response: ApiResponse<T[K]>) => void) => void}): {[K in keyof T]: () => Promise<T[K]>} {
+    const promObject = {} as {[K in keyof T]: () => Promise<T[K]>}
+    for (const key in object) {
+        promObject[key] = promisify(object[key])
+    }
+    return promObject
 }
 
 const oldApi = {
@@ -103,12 +119,7 @@ const oldApi = {
     }
 };
 
-export const api = {
-    requestAdmins: promisify(oldApi.requestAdmins),
-    requestUsers: promisify(oldApi.requestUsers),
-    requestCurrentServerTime: promisify(oldApi.requestCurrentServerTime),
-    requestCoffeeMachineQueueLength: promisify(oldApi.requestCoffeeMachineQueueLength)
-};
+export const api = promisifyAll(oldApi)
 
 function logPerson(person: Person) {
     console.log(
